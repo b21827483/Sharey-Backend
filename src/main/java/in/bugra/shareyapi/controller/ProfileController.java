@@ -1,0 +1,31 @@
+package in.bugra.shareyapi.controller;
+
+import in.bugra.shareyapi.dto.ProfileDTO;
+import in.bugra.shareyapi.service.ProfileService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class ProfileController {
+
+    @Autowired
+    private ProfileService profileService;
+
+    public ProfileController(ProfileService profileService) {
+        this.profileService = profileService;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> registerProfile(@RequestBody ProfileDTO profileDTO) {
+        HttpStatus status = profileService.existsByClerkId(profileDTO.getClerkId()) ?
+                HttpStatus.OK : HttpStatus.CREATED;
+        ProfileDTO savedProfile = profileService.createProfile(profileDTO);
+
+        return ResponseEntity.status(status).body(savedProfile);
+    }
+}
