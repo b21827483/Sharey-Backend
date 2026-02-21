@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,22 +24,31 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Component
-@RequiredArgsConstructor
 public class ClerkJwtAuthFilter extends OncePerRequestFilter {
 
     @Value("${clerk.issuer}")
     private String clerkIssuer;
 
+    @Autowired
     private final ClerkJwksProvider jwksProvider;
+    public ClerkJwtAuthFilter(ClerkJwksProvider jwksProvider) {
+        this.jwksProvider = jwksProvider;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
 
+        String uri = request.getRequestURI();
+        System.out.println("🔍 Filter called for URI: " + uri);
+
         if (request.getRequestURI().contains("/webhooks")) {
+            System.out.println("✅ Webhook detected - skipping auth");
             filterChain.doFilter(request, response);
             return;
         }
+
+        System.out.println("🔒 Checking JWT for: " + uri);
 
         String authHeader = request.getHeader("Authorization");
 
@@ -77,7 +87,7 @@ public class ClerkJwtAuthFilter extends OncePerRequestFilter {
 
             String clerkId = claims.getSubject();
 
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(clerkId, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(clerkId, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
 
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             filterChain.doFilter(request, response);

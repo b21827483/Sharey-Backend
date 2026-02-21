@@ -2,6 +2,7 @@ package in.bugra.shareyapi.config;
 
 import in.bugra.shareyapi.security.ClerkJwtAuthFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -19,10 +20,14 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
+    @Autowired
     private final ClerkJwtAuthFilter clerkJwtAuthFilter;
+
+    public SecurityConfig(ClerkJwtAuthFilter clerkJwtAuthFilter) {
+        this.clerkJwtAuthFilter = clerkJwtAuthFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
