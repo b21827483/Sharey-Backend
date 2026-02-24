@@ -57,6 +57,8 @@ public class ClerkJwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
+        System.out.println(authHeader);
+
         try {
             String token = authHeader.substring(7);
             String[] chunks = token.split("\\.");
@@ -69,8 +71,11 @@ public class ClerkJwtAuthFilter extends OncePerRequestFilter {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode headerNode = mapper.readTree(headerJson);
 
+            System.out.println(headerNode);
+
             if (!headerNode.has("kid")) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Token header is missing");
+                return;
             }
 
             String kid = headerNode.get("kid").asText();
@@ -88,8 +93,10 @@ public class ClerkJwtAuthFilter extends OncePerRequestFilter {
             String clerkId = claims.getSubject();
 
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(clerkId, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
-
+            System.out.println(authenticationToken);
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            System.out.println("✅ JWT validated successfully");
+
             filterChain.doFilter(request, response);
         } catch (Exception e) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid JWT token: " + e.getMessage());

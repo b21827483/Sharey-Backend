@@ -6,6 +6,8 @@ import in.bugra.shareyapi.exception.EmailAlreadyExists;
 import in.bugra.shareyapi.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -96,5 +98,14 @@ public class ProfileService {
         if (existingProfile != null) {
             profileRepository.delete(existingProfile);
         }
+    }
+
+    public Profile getCurrentProfile() {
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            throw new UsernameNotFoundException("User not authenticated");
+        }
+
+        String clerkId = SecurityContextHolder.getContext().getAuthentication().getName();
+        return profileRepository.findByClerkId(clerkId);
     }
 }
